@@ -68,8 +68,30 @@ export const useMove = (
     _emit(currentValue, 'right', checkedState.leftChecked)
   }
 
+  const moveTargetItem = (
+    draggingIndex: number,
+    dropIndex: number,
+    type: 'before' | 'after'
+  ) => {
+    const currentValue = props.modelValue.slice()
+
+    const value = (currentValue ?? []).slice()
+    const [draggedItem] = value.splice(draggingIndex, 1)
+    const step =
+      dropIndex > draggingIndex && type === 'before'
+        ? -1
+        : dropIndex < draggingIndex && type === 'after'
+          ? 1
+          : 0
+
+    value.splice(dropIndex + step, 0, draggedItem)
+
+    _emit(value, 'right', checkedState.leftChecked)
+  }
+
   return {
     addToLeft,
     addToRight,
+    moveTargetItem,
   }
 }

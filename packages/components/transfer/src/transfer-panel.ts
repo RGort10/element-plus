@@ -1,5 +1,6 @@
 import { buildProps, definePropType } from '@element-plus/utils'
 import { transferCheckedChangeFn, transferProps } from './transfer'
+import { isArray, isNumber } from 'lodash-unified'
 
 import type { ExtractPublicPropTypes, VNode } from 'vue'
 import type { TransferDataItem, TransferKey, TransferProps } from './transfer'
@@ -13,6 +14,8 @@ export interface TransferPanelState {
 }
 
 export const CHECKED_CHANGE_EVENT = 'checked-change'
+export const DATA_CHANGE_EVENT = 'update:data'
+export const MOVE_ITEM_EVENT = 'move-item'
 
 export interface TransferPanelProps {
   data?: TransferProps['data']
@@ -54,6 +57,15 @@ export type TransferPanelPropsPublic = ExtractPublicPropTypes<
 
 export const transferPanelEmits = {
   [CHECKED_CHANGE_EVENT]: transferCheckedChangeFn,
+  [DATA_CHANGE_EVENT]: (value: TransferDataItem[]) => isArray(value),
+  [MOVE_ITEM_EVENT]: (
+    draggingIndex: number,
+    dropIndex: number,
+    type: 'before' | 'after'
+  ) =>
+    isNumber(draggingIndex) &&
+    isNumber(dropIndex) &&
+    ['before', 'after'].includes(type),
 }
 export type TransferPanelEmits = typeof transferPanelEmits
 

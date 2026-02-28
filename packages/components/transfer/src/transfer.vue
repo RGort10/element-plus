@@ -2,7 +2,7 @@
   <div :class="ns.b()">
     <transfer-panel
       ref="leftPanel"
-      :data="sourceData"
+      v-model:data="sourceData"
       :option-render="optionRender"
       :placeholder="panelFilterPlaceholder"
       :title="leftPanelTitle"
@@ -50,6 +50,7 @@
       :default-checked="rightDefaultChecked"
       :props="props.props"
       @checked-change="onTargetCheckedChange"
+      @move-item="moveTargetItem"
     >
       <template #empty>
         <slot name="right-empty" />
@@ -125,7 +126,11 @@ const { onSourceCheckedChange, onTargetCheckedChange } = useCheckedChange(
   emit
 )
 
-const { addToLeft, addToRight } = useMove(props, checkedState, emit)
+const { addToLeft, addToRight, moveTargetItem } = useMove(
+  props,
+  checkedState,
+  emit
+)
 
 const leftPanel = ref<TransferPanelInstance>()
 const rightPanel = ref<TransferPanelInstance>()

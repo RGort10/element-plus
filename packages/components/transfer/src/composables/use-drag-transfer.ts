@@ -21,7 +21,7 @@ export function useDragTag({
   handleDragged,
   afterDragged,
 }: UseDragTagOptions) {
-  const ns = useNamespace('input-tag')
+  const ns = useNamespace('transfer-panel')
   const dropIndicatorRef = shallowRef<HTMLElement>()
   const showDropIndicator = ref(false)
 
@@ -31,14 +31,11 @@ export function useDragTag({
   let dropType: DropType | undefined
 
   function getTagClassName(index: number) {
-    return `.${ns.e('inner')} .${ns.namespace.value}-tag:nth-child(${
-      index + 1
-    })`
+    return `.${ns.e('list')} .${ns.namespace.value}-transfer-panel__item:nth-child(${index + 1})`
   }
 
   function handleDragStart(event: DragEvent, index: number) {
     draggingIndex = index
-    console.log(wrapperRef)
     draggingTag = wrapperRef.value!.querySelector<HTMLElement>(
       getTagClassName(index)
     )
@@ -59,12 +56,15 @@ export function useDragTag({
       return
     }
 
+    // console.log(wrapperRef
+    // .value!.querySelector<HTMLElement>(getTagClassName(index)))
+    // return
     const dropPosition = wrapperRef
       .value!.querySelector<HTMLElement>(getTagClassName(index))!
       .getBoundingClientRect()
     const dropPrev = !(draggingIndex + 1 === index)
     const dropNext = !(draggingIndex - 1 === index)
-    const distance = event.clientX - dropPosition.left
+    const distance = event.clientY - dropPosition.top
     const prevPercent = dropPrev ? (dropNext ? 0.5 : 1) : -1
     const nextPercent = dropNext ? (dropPrev ? 0.5 : 0) : 1
 
@@ -77,7 +77,7 @@ export function useDragTag({
     }
 
     const innerEl = wrapperRef.value!.querySelector<HTMLElement>(
-      `.${ns.e('inner')}`
+      `.${ns.e('body')}`
     )!
     const innerPosition = innerEl.getBoundingClientRect()
     const gap = Number.parseFloat(getStyle(innerEl, 'gap')) / 2

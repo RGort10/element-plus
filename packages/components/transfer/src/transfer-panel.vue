@@ -1,5 +1,5 @@
 <template>
-  <div :class="ns.b('panel')">
+  <div ref="wrapperRef" :class="ns.b('panel')">
     <p :class="ns.be('panel', 'header')">
       <el-checkbox
         v-model="allChecked"
@@ -14,7 +14,10 @@
       </el-checkbox>
     </p>
 
-    <div :class="[ns.be('panel', 'body'), ns.is('with-footer', hasFooter)]">
+    <div
+      ref="innerRef"
+      :class="[ns.be('panel', 'body'), ns.is('with-footer', hasFooter)]"
+    >
       <el-input
         v-if="filterable"
         v-model="query"
@@ -32,12 +35,17 @@
         :class="[ns.is('filterable', filterable), ns.be('panel', 'list')]"
       >
         <el-checkbox
-          v-for="item in filteredData"
+          v-for="(item, index) in filteredData"
           :key="item[propsAlias.key]"
           :class="ns.be('panel', 'item')"
           :value="item[propsAlias.key]"
           :disabled="item[propsAlias.disabled]"
+          :draggable="true"
           :validate-event="false"
+          @dragstart="(event: DragEvent) => handleDragStart(event, index)"
+          @dragover="(event: DragEvent) => handleDragOver(event, index)"
+          @dragend="handleDragEnd"
+          @drop.stop
         >
           <option-content :option="optionRender?.(item)" />
         </el-checkbox>
@@ -58,14 +66,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, toRefs, useSlots } from 'vue'
+import { computed, reactive, shallowRef, toRefs, useSlots } from 'vue'
 import { isEmpty, mutable } from '@element-plus/utils'
 import { useLocale, useNamespace } from '@element-plus/hooks'
 import { ElCheckbox, ElCheckboxGroup } from '@element-plus/components/checkbox'
 import { ElInput } from '@element-plus/components/input'
 import { Search } from '@element-plus/icons-vue'
-import { transferPanelEmits } from './transfer-panel'
-import { useCheck, usePropsAlias } from './composables'
+import { MOVE_ITEM_EVENT, transferPanelEmits } from './transfer-panel'
+import { useCheck, useDragTag, usePropsAlias } from './composables'
 
 import type { VNode } from 'vue'
 import type { TransferPanelProps, TransferPanelState } from './transfer-panel'
@@ -101,13 +109,43 @@ const panelState = reactive<TransferPanelState>({
 })
 
 const propsAlias = usePropsAlias(props)
-
 const {
   filteredData,
   checkedSummary,
   isIndeterminate,
   handleAllCheckedChange,
 } = useCheck(props, panelState, emit)
+
+const wrapperRef = shallowRef<HTMLElement>()
+
+const handleDragged = (
+  draggingIndex: number,
+  dropIndex: number,
+  type: 'before' | 'after'
+) => {
+  emit(MOVE_ITEM_EVENT, draggingIndex, dropIndex, type)
+
+  // const value = (filteredData?.value ?? []).slice()
+  // const [draggedItem] = value.splice(draggingIndex, 1)
+  // const step =
+  //   dropIndex > draggingIndex && type === 'before'
+  //     ? -1
+  //     : dropIndex < draggingIndex && type === 'after'
+  //       ? 1
+  //       : 0
+
+  // value.splice(dropIndex + step, 0, draggedItem)
+  // console.log(value, props.data)
+  // emit(UPDATE_MODEL_EVENT, value)
+  // emit(DATA_CHANGE_EVENT, value)
+  // emit('drag-tag', draggingIndex, dropIndex + step, draggedItem)
+}
+
+const { handleDragStart, handleDragOver, handleDragEnd } = useDragTag({
+  wrapperRef,
+  handleDragged,
+  afterDragged: focus,
+})
 
 const hasNoMatch = computed(
   () => !isEmpty(panelState.query) && isEmpty(filteredData.value)
